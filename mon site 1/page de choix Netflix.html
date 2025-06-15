@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Netflix - Achat</title>
+  <style>
+    /* (Styles CSS conservés depuis ta version + quelques améliorations) */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #fff;
+    }
+    header {
+      padding: 10px;
+      text-align: center;
+      color: black;
+    }
+    header img {
+      width: 100px;
+    }
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .produits {
+      flex: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .produit {
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      transition: 0.3s;
+      cursor: pointer;
+      background-color: #f9f9f9;
+    }
+    .produit:hover {
+      border-color: #007BFF;
+    }
+    .produit img {
+      width: 180px;
+      height: 230px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .Pre-commendee {
+      display: inline-block;
+      border: 1px dashed green;
+      color: green;
+      border-radius: 10px;
+      padding: 2px 8px;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .prix {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    .formulaire {
+      flex: 1;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      min-width: 280px;
+    }
+    .formulaire h3 {
+      margin-top: 0;
+    }
+    .formulaire input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    .formulaire button {
+      width: 100%;
+      padding: 12px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .formulaire button:hover {
+      background-color: #333;
+    }
+
+    .cart {
+      background: #f1f1f1;
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 300px;
+      height: 100vh;
+      overflow-y: auto;
+      box-shadow: -4px 0 10px rgba(0,0,0,0.3);
+      transition: right 0.3s;
+      z-index: 999;
+    }
+    .cart.show {
+      right: 0;
+    }
+    .cart h3 {
+      margin-top: 0;
+    }
+    .cart-item {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    .cart-total {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .checkout-btn, .buy-button {
+      margin-top: 10px;
+      background: #ffc107;
+      color: black;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      display: inline-block;
+      text-decoration: none;
+    }
+
+    .show-cart-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: black;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logo.png" alt="Logo">
+    <h2>Choisissez votre offre Netflix</h2>
+  </header>
+
+  <button class="show-cart-btn" onclick="toggleCart()">🛒 Panier (<span id="cart-count">0</span>)</button>
+
+  <div class="cart" id="cart">
+    <h3>Votre Panier</h3>
+    <div id="cart-items"></div>
+    <div class="cart-total" id="cart-total">Total: 0 G</div>
+    <a href="paiement.html" class="buy-button" onclick="sauvegarderPanier()">Acheter</a>
+  </div>
+
+  <div class="container">
+    <div class="produits" id="produits-list"></div>
+
+    <div class="formulaire">
+      <h3 id="produit-nom">Sélectionnez un produit</h3>
+      <div class="Pre-commendee" id="produit-pre-commendee">Disponible</div>
+      <div class="prix" id="produit-prix">---</div>
+
+      <input type="text" placeholder="Votre nom" id="nomComplet" maxlength="30">
+      <input type="text" placeholder="Votre numéro WhatsApp" id="numberwhatsapp" maxlength="10">
+      <button onclick="ajouterPanier()">AJOUTER AU PANIER</button>
+    </div>
+  </div>
+
+  <script>
+    const produits = [
+      { nom: 'Netflix 1 Mois + 1 Profil', prix: 400, image: 'C:\Users\JSC2\Pictures\Screenshots\netflix1.jpg' },
+      { nom: 'Netflix 2 Mois + 1 Profil', prix: 800, image: 'netflix2.png' },
+      { nom: 'Netflix 3 Mois + 1 Profil', prix: 1200, image: 'netflix3.png' },
+      { nom: 'Compte Netflix 1 Mois (Full)', prix: 1600, image: 'netflix4.png' }
+    ];
+
+    let produitSelectionne = null;
+    let panier = [];
+
+    const produitsList = document.getElementById('produits-list');
+    produits.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'produit';
+      div.innerHTML = `
+        <img src="${p.image}" alt="${p.nom}">
+        <div><strong>${p.nom}</strong></div>
+        <div class="Pre-commendee">Disponible</div>
+        <div class="prix">${p.prix} G</div>
+      `;
+      div.onclick = () => selectProduit(p.nom, p.prix);
+      produitsList.appendChild(div);
+    });
+
+    function selectProduit(nom, prix) {
+      document.getElementById('produit-nom').innerText = nom;
+      document.getElementById('produit-prix').innerText = prix + ' G';
+      produitSelectionne = { nom, prix };
+    }
+
+    function ajouterPanier() {
+      const nomComplet = document.getElementById('nomComplet').value.trim();
+      const numberwhatsapp = document.getElementById('numberwhatsapp').value.trim();
+
+      if (!produitSelectionne || !nomComplet || !numberwhatsapp) {
+        alert("Veuillez remplir tous les champs.");
+        return;
+      }
+
+      panier.push({ ...produitSelectionne, nomComplet, numberwhatsapp });
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartItems = document.getElementById('cart-items');
+      cartItems.innerHTML = '';
+      let total = 0;
+      panier.forEach((item, index) => {
+        total += item.prix;
+        cartItems.innerHTML += `
+          <div class="cart-item">
+            <strong>${item.nom}</strong><br>
+            Nom: ${item.nomComplet}<br>
+            WhatsApp: ${item.numberwhatsapp}<br>
+            Prix: ${item.prix} G
+            <br><button onclick="supprimer(${index})">❌ Supprimer</button>
+          </div>
+        `;
+      });
+
+      document.getElementById('cart-total').innerText = "Total: " + total + " G";
+      document.getElementById('cart-count').innerText = panier.length;
+    }
+
+    function supprimer(index) {
+      panier.splice(index, 1);
+      updateCartUI();
+    }
+
+    function toggleCart() {
+      const cart = document.getElementById('cart');
+      cart.classList.toggle('show');
+    }
+
+    function sauvegarderPanier() {
+      localStorage.setItem('panier', JSON.stringify(panier));
+    }
+  </script>
+
+</body>
+</html>

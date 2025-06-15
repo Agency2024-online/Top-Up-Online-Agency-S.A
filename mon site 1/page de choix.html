@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" type="php" href="C:\Users\JSC2\Desktop\mon-cash-pay.php.top.php">
+  <title>Free Fire - Achat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #fff;
+    }
+    header {
+      padding: 10px;
+      text-align: center;
+      color: black;
+    }
+    header img {
+      width: 100px;
+    }
+    .container {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .produits {
+      flex: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .produit {
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .produit:hover {
+      border-color: lightblue;
+    }
+    .produit img {
+      width: 180px;
+      height: 230px;
+    }
+    .disponible {
+      display: inline-block;
+      border: 1px dashed green;
+      color: green;
+      border-radius: 10px;
+      padding: 2px 8px;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .prix {
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    .formulaire {
+      flex: 1;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 20px;
+      min-width: 280px;
+    }
+    .formulaire-contenu {
+  display: none;
+}
+    .formulaire h3 {
+      margin-top: 0;
+    }
+    .formulaire input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    .formulaire button {
+      width: 100%;
+      padding: 12px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .formulaire button:hover {
+      background-color: #333;
+    }
+
+    /* Panier */
+    .cart {
+      background: #f1f1f1;
+      padding: 20px;
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 300px;
+      height: 100vh;
+      overflow-y: auto;
+      box-shadow: -4px 0 10px rgba(0,0,0,0.3);
+      transition: right 0.3s;
+      z-index: 999;
+    }
+    .cart.show {
+      right: 0;
+    }
+    .cart h3 {
+      margin-top: 0;
+    }
+    .cart-item {
+      margin-bottom: 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    .cart-total {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .checkout-btn {
+      margin-top: 10px;
+      background: #ffc107;
+      color: black;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .show-cart-btn {
+      position: fixed;
+      top: 20px;
+      right: 10px;
+      background: transparent;
+      color: white;
+      padding: 10px 15px;
+      border: black;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    .buy-button {
+      background: black;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .buy-button:hover {
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="C:\Users\JSC2\OneDrive\Pictures\Logo Maker - Business Design Creator Templates\1000064659.png" alt="Logo">
+      <div style="text-align: center; font-size: 18px; margin-bottom: 10px;">
+  Solde actuel : <strong><span id="solde-client">0</span> G</strong>
+    <h2>Choisissez votre montant</h2>
+  </header>
+<div class="show-cart-btn">
+  <button onclick="toggleCart()" style="background: none; border: none;">
+  <img src="C:\Users\JSC2\OneDrive\Pictures\Logo Maker - Business Design Creator Templates\panier.png" alt="Panier" width="60">
+</button>
+</div>
+  <div class="cart" id="cart">
+    <h3>Votre Panier</h3>
+    <div id="cart-items"></div>
+    <div class="cart-total" id="cart-total">Total: 0 G</div>
+    <a href="paiement.html" class="buy-button" onclick="sauvegarderPanier()">Acheter</a>
+
+  </div>
+
+  <div class="container">
+
+    <!-- Produits -->
+    <div class="produits" id="produits-list"></div>
+
+    <!-- Formulaire -->
+    <div class="formulaire">
+  <div class="formulaire-contenu">
+    <h3 id="produit-nom">Sélectionnez un produit</h3>
+    <div class="disponible" id="produit-dispo">Disponible</div>
+    <div class="prix" id="produit-prix">---</div>
+
+    <input type="text" placeholder="Nom du compte" id="nomCompte" maxlength="15">
+    <input type="text" placeholder="UID du compte" id="uidCompte" maxlength="10">
+    <button onclick="ajouterPanier()">AJOUTER AU PANIER</button>
+  </div>
+</div>
+
+  <script>
+    const produits = [
+      { nom: '100 + 10 💎', prix: 150 },
+      { nom: '200 + 20 💎', prix: 310 },
+      { nom: '310 + 62 💎', prix: 470 },
+      { nom: '410 + 82 💎', prix: 680 },
+      { nom: '520 + 52 💎', prix: 930 },
+      { nom: '1020 + 102 💎', prix: 1310 },
+      { nom: 'Booyah PASS', prix: 450 },
+      { nom: 'Abonnement Semaine', prix: 400 },
+    ];
+
+    let produitSelectionne = null;
+    let panier = [];
+
+    const produitsList = document.getElementById('produits-list');
+    produits.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'produit';
+      div.innerHTML = `
+
+        <div><strong>${p.nom}</strong></div>
+        <div class="disponible">Disponible</div>
+        <div class="prix">${p.prix} G</div>
+      `;
+      div.onclick = () => selectProduit(p.nom, p.prix);
+      produitsList.appendChild(div);
+    });
+
+    function selectProduit(nom, prix) {
+  document.getElementById('produit-nom').innerText = nom;
+  document.getElementById('produit-prix').innerText = prix + ' G';
+  produitSelectionne = { nom, prix };
+
+  // Affiche la partie du formulaire si elle est cachée
+  document.querySelector('.formulaire-contenu').style.display = 'block';
+}
+
+
+    function ajouterPanier() {
+      const nomCompte = document.getElementById('nomCompte').value.trim();
+      const uidCompte = document.getElementById('uidCompte').value.trim();
+
+      if (!produitSelectionne || !nomCompte || !uidCompte) {
+        alert("Veuillez compléter toutes les informations.");
+        return;
+      }
+
+      panier.push({ ...produitSelectionne, nomCompte, uidCompte });
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartItems = document.getElementById('cart-items');
+      cartItems.innerHTML = '';
+
+      let total = 0;
+      panier.forEach((item, index) => {
+        total += item.prix;
+        cartItems.innerHTML += `
+          <div class="cart-item">
+            <strong>${item.nom}</strong><br>
+            Nom: ${item.nomCompte}<br>
+            UID: ${item.uidCompte}<br>
+            Prix: ${item.prix} G
+            <br><button onclick="supprimer(${index})">❌ Supprimer</button>
+          </div>
+        `;
+      });
+
+      document.getElementById('cart-total').innerText = "Total: " + total + " G";
+      document.getElementById('cart-count').innerText = panier.length;
+    }
+
+    function supprimer(index) {
+      panier.splice(index, 1);
+      updateCartUI();
+    }
+
+    function toggleCart() {
+      const cart = document.getElementById('cart');
+      cart.classList.toggle('show');
+    }
+
+    function validerCommande() {
+      alert("Commande validée !");
+      panier = [];
+      updateCartUI();
+      toggleCart();
+    }
+
+    function sauvegarderPanier() {
+  localStorage.setItem('panier', JSON.stringify(panier));
+
+}
+    function total() {
+  localStorage.setItem('total', JSON.stringify(total));
+
+}
+let solde = localStorage.getItem('soldeClient');
+  solde = solde ? parseInt(solde) : 2000; // Solde par défaut : 2000 G
+  document.getElementById('solde-client').innerText = solde;
+
+  function mettreAJourSolde() {
+    document.getElementById('solde-client').innerText = solde;
+    localStorage.setItem('soldeClient', solde);
+  }
+
+  function sauvegarderPanier() {
+    let total = panier.reduce((acc, item) => acc + item.prix, 0);
+    if (total > solde) {
+      alert("Solde insuffisant pour effectuer cet achat.");
+      return;
+    }
+
+    solde -= total; // Déduire le solde
+    mettreAJourSolde(); // Met à jour l'affichage et sauvegarde
+    localStorage.setItem('panier', JSON.stringify(panier));
+    alert("Achat validé avec succès !");
+    panier = [];
+    updateCartUI();
+    toggleCart();
+  }
+  </script>
+</body>
+</html>
